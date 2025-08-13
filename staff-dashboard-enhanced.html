@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff AI Survey Dashboard - University of St. Thomas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --ust-purple: #52267D;
+            --ust-purple-light: #7B4BA7;
+            --ust-purple-lighter: #9C6BB2;
+            --ust-purple-dark: #3A1A5A;
+            --ust-gray: #6C757D;
+            --ust-gray-light: #F8F9FA;
+            --ust-success: #28A745;
+            --ust-warning: #FFC107;
+            --ust-danger: #DC3545;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .dashboard-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Section */
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid var(--ust-purple);
+        }
+        
+        .header h1 {
+            color: var(--ust-purple);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header .subtitle {
+            color: var(--ust-gray);
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .header .stats {
+            display: inline-flex;
+            gap: 30px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--ust-purple), var(--ust-purple-light));
+            color: white;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        
+        .header .stats span {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Interactive Controls */
+        .controls-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .filter-group {
+            max-width: 300px;
+        }
+        
+        .filter-group label {
+            display: block;
+            color: var(--ust-purple);
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--ust-purple);
+            box-shadow: 0 0 0 3px rgba(82, 38, 125, 0.1);
+        }
+        
+        /* Metrics Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+            border-left: 4px solid var(--ust-purple);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .metric-card .label {
+            color: var(--ust-gray);
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        
+        .metric-card .value {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: var(--ust-purple);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        
+        .metric-card .context {
+            color: var(--ust-gray);
+            font-size: 0.9em;
+        }
+        
+        /* Chart Sections */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .chart-card h2 {
+            color: var(--ust-purple);
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 350px;
+        }
+        
+        /* Radar Chart Section with Explanation */
+        .radar-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .radar-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .radar-explanation {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--ust-purple-light), var(--ust-purple));
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .radar-explanation h3 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .radar-explanation h4 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+            opacity: 0.95;
+        }
+        
+        .radar-explanation p {
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .radar-explanation ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .radar-explanation li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .radar-explanation li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+        }
+        
+        /* Support Resources Section */
+        .resources-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-top: 4px solid var(--ust-purple);
+        }
+        
+        .resources-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .resources-header h2 {
+            color: var(--ust-purple);
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        
+        .resources-header p {
+            color: var(--ust-gray);
+            font-size: 1.1em;
+        }
+        
+        .resources-content {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .priority-matrix {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .priority-matrix h3 {
+            color: var(--ust-purple);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .priority-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--ust-purple);
+            transition: all 0.3s;
+        }
+        
+        .priority-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .priority-item .priority-label {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .priority-high {
+            background: var(--ust-danger);
+            color: white;
+        }
+        
+        .priority-medium {
+            background: var(--ust-warning);
+            color: #333;
+        }
+        
+        .priority-low {
+            background: var(--ust-success);
+            color: white;
+        }
+        
+        .priority-item h4 {
+            color: var(--ust-purple);
+            margin-bottom: 5px;
+        }
+        
+        .priority-item p {
+            color: var(--ust-gray);
+            font-size: 0.9em;
+            margin: 0;
+        }
+        
+        /* Insights Box */
+        .insights-box {
+            background: linear-gradient(135deg, var(--ust-purple), var(--ust-purple-light));
+            color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .insights-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .insights-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .insights-box li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            line-height: 1.6;
+        }
+        
+        .insights-box li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        /* Cross-tabulation Table */
+        .table-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .table-section h2 {
+            color: var(--ust-purple);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--ust-purple);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9em;
+        }
+        
+        tr:hover {
+            background: var(--ust-gray-light);
+        }
+        
+        tr.highlight {
+            background: rgba(82, 38, 125, 0.1);
+            font-weight: 600;
+        }
+        
+        .cell-high {
+            background: rgba(40, 167, 69, 0.1);
+            font-weight: 600;
+        }
+        
+        .cell-medium {
+            background: rgba(255, 193, 7, 0.1);
+        }
+        
+        .cell-low {
+            background: rgba(220, 53, 69, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Staff AI Survey Dashboard</h1>
+            <div class="subtitle">University of St. Thomas - Staff Technology & AI Adoption Analysis</div>
+            <div class="stats">
+                <span>📊 329 Total Responses</span>
+                <span>📈 18% Response Rate</span>
+                <span>📅 Survey Period: 2024-2025</span>
+            </div>
+        </div>
+        
+        <!-- Interactive Controls -->
+        <div class="controls-section">
+            <div class="filter-group">
+                <label for="departmentFilter">Select Department View</label>
+                <select id="departmentFilter" onchange="updateDashboard()">
+                    <option value="all">All Departments (329 staff)</option>
+                    <option value="it">IT Services (23 staff)</option>
+                    <option value="academic">Academic Support (45 staff)</option>
+                    <option value="admin">Administration (89 staff)</option>
+                    <option value="student">Student Affairs (8 staff)</option>
+                    <option value="facilities">Facilities/Operations (34 staff)</option>
+                    <option value="other">Other Departments (130 staff)</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">Total Responses</div>
+                <div class="value" id="totalResponses">329</div>
+                <div class="context" id="totalContext">All staff surveyed</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Use AI for Work</div>
+                <div class="value" id="aiAdoption">55%</div>
+                <div class="context" id="adoptionContext">At least monthly</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Daily Users</div>
+                <div class="value" id="dailyUsers">18%</div>
+                <div class="context" id="dailyContext">58 staff members</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">High Confidence</div>
+                <div class="value" id="highConfidence">49%</div>
+                <div class="context" id="confidenceContext">Confident in AI use</div>
+            </div>
+        </div>
+        
+        <!-- Main Charts: Usage Frequency & Department Adoption -->
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h2>Usage Frequency Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="frequencyChart"></canvas>
+                </div>
+                <div class="insights-box">
+                    <h3>Frequency Insights</h3>
+                    <ul id="frequencyInsights">
+                        <li>18% daily usage is 3x higher than faculty (6%)</li>
+                        <li>55% use AI at least monthly for work tasks</li>
+                        <li>14% have never used AI tools</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2>Department Adoption Rates</h2>
+                <div class="chart-container">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+                <div class="insights-box">
+                    <h3>Department Insights</h3>
+                    <ul id="departmentInsights">
+                        <li>IT Services leads with 87% adoption rate</li>
+                        <li>Facilities shows lowest adoption at 41%</li>
+                        <li>Clear correlation with technical roles</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cross-tabulation Table (moved up) -->
+        <div class="table-section">
+            <h2>Cross-tabulation: Department vs Usage Frequency</h2>
+            <table id="crosstabTable">
+                <thead>
+                    <tr>
+                        <th>Department ↓ / Frequency →</th>
+                        <th>Daily</th>
+                        <th>Weekly</th>
+                        <th>Monthly</th>
+                        <th>Rarely</th>
+                        <th>Never</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="crosstabBody">
+                    <tr>
+                        <td><strong>IT Services</strong></td>
+                        <td class="cell-high">8 (35%)</td>
+                        <td class="cell-high">7 (30%)</td>
+                        <td class="cell-medium">5 (22%)</td>
+                        <td class="cell-low">2 (9%)</td>
+                        <td class="cell-low">1 (4%)</td>
+                        <td>23</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Academic Support</strong></td>
+                        <td class="cell-high">12 (27%)</td>
+                        <td class="cell-high">10 (22%)</td>
+                        <td class="cell-medium">8 (18%)</td>
+                        <td class="cell-medium">9 (20%)</td>
+                        <td class="cell-low">6 (13%)</td>
+                        <td>45</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Administration</strong></td>
+                        <td class="cell-medium">15 (17%)</td>
+                        <td class="cell-medium">22 (25%)</td>
+                        <td class="cell-medium">15 (17%)</td>
+                        <td class="cell-medium">20 (22%)</td>
+                        <td class="cell-low">17 (19%)</td>
+                        <td>89</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Student Affairs</strong></td>
+                        <td class="cell-high">2 (25%)</td>
+                        <td class="cell-high">3 (38%)</td>
+                        <td class="cell-medium">1 (12%)</td>
+                        <td class="cell-low">1 (12%)</td>
+                        <td class="cell-low">1 (12%)</td>
+                        <td>8</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Facilities/Operations</strong></td>
+                        <td class="cell-low">3 (9%)</td>
+                        <td class="cell-medium">5 (15%)</td>
+                        <td class="cell-medium">6 (18%)</td>
+                        <td class="cell-low">8 (24%)</td>
+                        <td class="cell-low">12 (35%)</td>
+                        <td>34</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Other</strong></td>
+                        <td class="cell-medium">18 (14%)</td>
+                        <td class="cell-medium">33 (25%)</td>
+                        <td class="cell-medium">6 (5%)</td>
+                        <td class="cell-medium">9 (7%)</td>
+                        <td class="cell-low">8 (6%)</td>
+                        <td>130</td>
+                    </tr>
+                    <tr style="background: #f0f0f0; font-weight: bold;">
+                        <td><strong>Total</strong></td>
+                        <td>58 (18%)</td>
+                        <td>80 (24%)</td>
+                        <td>41 (12%)</td>
+                        <td>49 (15%)</td>
+                        <td>45 (14%)</td>
+                        <td>329</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Understanding Confidence Factors (Radar Chart) -->
+        <div class="radar-section">
+            <h2 style="color: var(--ust-purple); margin-bottom: 25px;">Understanding the Confidence Factors</h2>
+            <div class="radar-content">
+                <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+                <div class="radar-explanation">
+                    <h3>How to Read This Chart</h3>
+                    <p>The purple area represents high-confidence staff members, while the gray area represents low-confidence staff. Larger gaps indicate stronger predictors of AI confidence.</p>
+                    
+                    <h4>Key Predictive Insights:</h4>
+                    <ul id="radarInsights">
+                        <li><strong>Frequency of Use (72% gap)</strong> - Regular users are dramatically more confident</li>
+                        <li><strong>Training Received (68% gap)</strong> - Formal training significantly boosts confidence</li>
+                        <li><strong>Tool Diversity (54% gap)</strong> - Using multiple AI tools increases confidence</li>
+                        <li><strong>Department Support (45% gap)</strong> - Supportive environment matters</li>
+                        <li><strong>Years of Experience (12% gap)</strong> - Tenure barely affects confidence</li>
+                    </ul>
+                    
+                    <h4>Strategic Implications:</h4>
+                    <p id="strategicText">Focus on increasing usage frequency through hands-on training, introduce diverse AI tools, and build departmental support structures.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Tools Used by Staff -->
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h2>AI Tools Used by Staff</h2>
+                <div class="chart-container">
+                    <canvas id="toolsChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <!-- Empty space for layout balance -->
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px;">
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: var(--ust-purple); margin-bottom: 10px;">Tool Adoption Insights</h3>
+                        <p style="color: var(--ust-gray);">ChatGPT dominates with 68% usage, followed by Microsoft Copilot at 41%. Tool diversity correlates strongly with confidence levels.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Primary Concerns, Challenges, and Support Needs grouped together -->
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h2>Primary Concerns</h2>
+                <div class="chart-container">
+                    <canvas id="concernsChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2>Challenges Faced by Staff</h2>
+                <div class="chart-container">
+                    <canvas id="challengesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h2>Support Needs by Department</h2>
+                <div class="chart-container">
+                    <canvas id="deptSupportChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <!-- Empty space for layout balance -->
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px;">
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: var(--ust-purple); margin-bottom: 10px;">Department Support Analysis</h3>
+                        <p style="color: var(--ust-gray);">Training needs vary significantly by department. IT requires advanced training while Facilities needs foundational support. Time allocation is critical across all departments.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Support & Resources Analysis Section (moved to bottom) -->
+        <div class="resources-section">
+            <div class="resources-header">
+                <h2>🎯 Support & Resources Analysis</h2>
+                <p>Understanding what staff need to succeed with AI adoption</p>
+            </div>
+            
+            <div class="resources-content">
+                <div class="chart-card">
+                    <h2>Resources Requested by Staff</h2>
+                    <div class="chart-container">
+                        <canvas id="resourcesChart"></canvas>
+                    </div>
+                </div>
+                <div class="priority-matrix">
+                    <h3>Implementation Priority Matrix</h3>
+                    
+                    <div class="priority-item">
+                        <span class="priority-label priority-high">High Priority</span>
+                        <h4>Training Programs (66%)</h4>
+                        <p>Comprehensive workshops and courses on AI tools - highest demand across all departments</p>
+                    </div>
+                    
+                    <div class="priority-item">
+                        <span class="priority-label priority-high">High Priority</span>
+                        <h4>Time Allocation (61%)</h4>
+                        <p>Dedicated time for learning and experimentation with AI tools</p>
+                    </div>
+                    
+                    <div class="priority-item">
+                        <span class="priority-label priority-medium">Medium Priority</span>
+                        <h4>Tool Access (59%)</h4>
+                        <p>Licenses and subscriptions to professional AI platforms</p>
+                    </div>
+                    
+                    <div class="priority-item">
+                        <span class="priority-label priority-medium">Medium Priority</span>
+                        <h4>Clear Policies (54%)</h4>
+                        <p>Guidelines for acceptable and ethical AI use at work</p>
+                    </div>
+                    
+                    <div class="priority-item">
+                        <span class="priority-label priority-low">Quick Win</span>
+                        <h4>IT Support (40%)</h4>
+                        <p>Expert consultation for implementation assistance</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Strategic Recommendations at the very bottom -->
+            <div class="insights-box">
+                <h3>Strategic Recommendations</h3>
+                <ul id="resourceRecommendations">
+                    <li><strong>Immediate Action:</strong> Launch monthly AI training workshops with hands-on practice sessions</li>
+                    <li><strong>Policy Development:</strong> Create clear AI usage guidelines addressing the 54% who need clarity</li>
+                    <li><strong>Time Investment:</strong> Allocate 2-4 hours monthly for AI skill development (addresses 61% need)</li>
+                    <li><strong>Tool Procurement:</strong> Negotiate enterprise licenses for top AI tools (ChatGPT, Copilot, Claude)</li>
+                    <li><strong>Support Structure:</strong> Establish AI Champions program for peer-to-peer learning (31% interest)</li>
+                    <li><strong>Success Metrics:</strong> Only 12% don't need support - opportunity to reach 88% of staff</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Department-specific data (enhanced with resources data)
+        const departmentData = {
+            all: {
+                total: 329,
+                adoption: 55,
+                daily: 18,
+                dailyCount: 58,
+                confidence: 49,
+                frequency: [58, 80, 41, 49, 45],
+                tools: [224, 134, 78, 45, 34, 67],
+                concerns: [80, 73, 71, 65, 62, 38, 71],
+                radarHigh: [92, 88, 74, 65, 58, 48],
+                radarLow: [20, 20, 20, 20, 35, 36],
+                resources: [180, 166, 161, 147, 108, 85, 85, 32],
+                challenges: [195, 168, 142, 135, 98, 87, 45, 22],
+                deptSupport: {
+                    training: [87, 75, 67, 65, 58, 41],
+                    time: [78, 68, 62, 58, 52, 35],
+                    tools: [82, 72, 65, 60, 55, 38]
+                }
+            },
+            it: {
+                total: 23,
+                adoption: 87,
+                daily: 35,
+                dailyCount: 8,
+                confidence: 72,
+                frequency: [8, 7, 5, 2, 1],
+                tools: [20, 18, 12, 8, 5, 3],
+                concerns: [65, 45, 52, 78, 35, 15, 48],
+                radarHigh: [95, 92, 88, 85, 78, 52],
+                radarLow: [15, 12, 18, 25, 45, 48],
+                resources: [15, 12, 18, 10, 8, 5, 4, 8],
+                challenges: [8, 5, 10, 7, 3, 2, 2, 1],
+                deptSupport: {
+                    training: [87, 0, 0, 0, 0, 0],
+                    time: [78, 0, 0, 0, 0, 0],
+                    tools: [82, 0, 0, 0, 0, 0]
+                }
+            },
+            academic: {
+                total: 45,
+                adoption: 67,
+                daily: 27,
+                dailyCount: 12,
+                confidence: 58,
+                frequency: [12, 10, 8, 9, 6],
+                tools: [38, 25, 18, 12, 8, 10],
+                concerns: [78, 68, 65, 62, 58, 25, 65],
+                radarHigh: [88, 85, 72, 68, 62, 45],
+                radarLow: [22, 25, 28, 32, 38, 42],
+                resources: [32, 28, 27, 25, 18, 14, 12, 5],
+                challenges: [35, 30, 25, 22, 18, 15, 8, 3],
+                deptSupport: {
+                    training: [0, 75, 0, 0, 0, 0],
+                    time: [0, 68, 0, 0, 0, 0],
+                    tools: [0, 72, 0, 0, 0, 0]
+                }
+            },
+            admin: {
+                total: 89,
+                adoption: 58,
+                daily: 17,
+                dailyCount: 15,
+                confidence: 45,
+                frequency: [15, 22, 15, 20, 17],
+                tools: [72, 45, 28, 15, 12, 22],
+                concerns: [82, 75, 72, 68, 65, 42, 75],
+                radarHigh: [85, 82, 68, 58, 52, 48],
+                radarLow: [25, 28, 32, 35, 42, 45],
+                resources: [58, 55, 52, 48, 35, 28, 25, 8],
+                challenges: [68, 62, 52, 48, 35, 32, 18, 8],
+                deptSupport: {
+                    training: [0, 0, 67, 0, 0, 0],
+                    time: [0, 0, 62, 0, 0, 0],
+                    tools: [0, 0, 65, 0, 0, 0]
+                }
+            },
+            student: {
+                total: 8,
+                adoption: 75,
+                daily: 25,
+                dailyCount: 2,
+                confidence: 62,
+                frequency: [2, 3, 1, 1, 1],
+                tools: [7, 5, 3, 2, 1, 2],
+                concerns: [88, 72, 68, 58, 52, 28, 62],
+                radarHigh: [92, 88, 78, 72, 65, 55],
+                radarLow: [18, 22, 25, 28, 35, 42],
+                resources: [6, 5, 5, 4, 3, 2, 2, 1],
+                challenges: [6, 5, 4, 4, 3, 2, 1, 0],
+                deptSupport: {
+                    training: [0, 0, 0, 65, 0, 0],
+                    time: [0, 0, 0, 58, 0, 0],
+                    tools: [0, 0, 0, 60, 0, 0]
+                }
+            },
+            facilities: {
+                total: 34,
+                adoption: 41,
+                daily: 9,
+                dailyCount: 3,
+                confidence: 32,
+                frequency: [3, 5, 6, 8, 12],
+                tools: [22, 12, 8, 5, 3, 8],
+                concerns: [75, 82, 78, 55, 72, 58, 78],
+                radarHigh: [78, 72, 58, 48, 42, 45],
+                radarLow: [35, 38, 42, 45, 48, 48],
+                resources: [22, 21, 18, 15, 12, 8, 7, 2],
+                challenges: [28, 25, 20, 18, 12, 10, 5, 2],
+                deptSupport: {
+                    training: [0, 0, 0, 0, 41, 0],
+                    time: [0, 0, 0, 0, 35, 0],
+                    tools: [0, 0, 0, 0, 38, 0]
+                }
+            },
+            other: {
+                total: 130,
+                adoption: 65,
+                daily: 14,
+                dailyCount: 18,
+                confidence: 52,
+                frequency: [18, 33, 6, 9, 8],
+                tools: [85, 50, 32, 18, 12, 28],
+                concerns: [78, 72, 70, 62, 60, 35, 68],
+                radarHigh: [88, 85, 72, 62, 58, 48],
+                radarLow: [22, 25, 28, 32, 38, 42],
+                resources: [85, 78, 75, 70, 52, 40, 38, 15],
+                challenges: [92, 85, 72, 68, 48, 42, 22, 10],
+                deptSupport: {
+                    training: [0, 0, 0, 0, 0, 58],
+                    time: [0, 0, 0, 0, 0, 52],
+                    tools: [0, 0, 0, 0, 0, 55]
+                }
+            }
+        };
+        
+        // Chart instances storage
+        const charts = {};
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+        });
+        
+        // Update dashboard based on department selection
+        function updateDashboard() {
+            const selectedDept = document.getElementById('departmentFilter').value;
+            const data = departmentData[selectedDept];
+            
+            // Update metrics
+            document.getElementById('totalResponses').textContent = data.total;
+            document.getElementById('totalContext').textContent = selectedDept === 'all' ? 'All staff surveyed' : 'Department staff';
+            
+            document.getElementById('aiAdoption').textContent = data.adoption + '%';
+            document.getElementById('adoptionContext').textContent = 'At least monthly';
+            
+            document.getElementById('dailyUsers').textContent = data.daily + '%';
+            document.getElementById('dailyContext').textContent = data.dailyCount + ' staff members';
+            
+            document.getElementById('highConfidence').textContent = data.confidence + '%';
+            document.getElementById('confidenceContext').textContent = 'Confident in AI use';
+            
+            // Update all charts
+            updateFrequencyChart(data);
+            updateDepartmentChart(selectedDept);
+            updateRadarChart(data);
+            updateToolsChart(data);
+            updateConcernsChart(data);
+            updateResourcesChart(data);
+            updateChallengesChart(data);
+            updateDeptSupportChart(data);
+            updateCrosstabTable(selectedDept);
+            updateInsights(selectedDept);
+        }
+        
+        // Initialize all charts
+        function initializeCharts() {
+            createFrequencyChart();
+            createDepartmentChart();
+            createRadarChart();
+            createToolsChart();
+            createConcernsChart();
+            createResourcesChart();
+            createChallengesChart();
+            createDeptSupportChart();
+        }
+        
+        // Frequency Chart
+        function createFrequencyChart() {
+            const ctx = document.getElementById('frequencyChart').getContext('2d');
+            charts.frequency = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Daily', 'Weekly', 'Monthly', 'Rarely', 'Never'],
+                    datasets: [{
+                        label: 'Number of Staff',
+                        data: [58, 80, 41, 49, 45],
+                        backgroundColor: 'rgba(82, 38, 125, 0.8)',
+                        borderColor: 'rgba(82, 38, 125, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { display: false }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateFrequencyChart(data) {
+            charts.frequency.data.datasets[0].data = data.frequency;
+            charts.frequency.update();
+        }
+        
+        // Department Chart
+        function createDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            charts.department = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['IT Services', 'Student Affairs', 'Academic Support', 'Other', 'Administration', 'Facilities'],
+                    datasets: [{
+                        label: 'Adoption Rate (%)',
+                        data: [87, 75, 67, 65, 58, 41],
+                        backgroundColor: [
+                            'rgba(82, 38, 125, 0.9)',
+                            'rgba(82, 38, 125, 0.8)',
+                            'rgba(82, 38, 125, 0.7)',
+                            'rgba(82, 38, 125, 0.6)',
+                            'rgba(82, 38, 125, 0.5)',
+                            'rgba(82, 38, 125, 0.4)'
+                        ],
+                        borderColor: 'rgba(82, 38, 125, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { display: false }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateDepartmentChart(selectedDept) {
+            // Highlight selected department
+            const deptMap = {
+                'it': 0,
+                'student': 1,
+                'academic': 2,
+                'other': 3,
+                'admin': 4,
+                'facilities': 5
+            };
+            
+            const colors = [
+                'rgba(82, 38, 125, 0.4)',
+                'rgba(82, 38, 125, 0.4)',
+                'rgba(82, 38, 125, 0.4)',
+                'rgba(82, 38, 125, 0.4)',
+                'rgba(82, 38, 125, 0.4)',
+                'rgba(82, 38, 125, 0.4)'
+            ];
+            
+            if (selectedDept !== 'all' && deptMap[selectedDept] !== undefined) {
+                colors[deptMap[selectedDept]] = 'rgba(82, 38, 125, 1)';
+            } else {
+                // Default gradient for all
+                colors[0] = 'rgba(82, 38, 125, 0.9)';
+                colors[1] = 'rgba(82, 38, 125, 0.8)';
+                colors[2] = 'rgba(82, 38, 125, 0.7)';
+                colors[3] = 'rgba(82, 38, 125, 0.6)';
+                colors[4] = 'rgba(82, 38, 125, 0.5)';
+                colors[5] = 'rgba(82, 38, 125, 0.4)';
+            }
+            
+            charts.department.data.datasets[0].backgroundColor = colors;
+            charts.department.update();
+        }
+        
+        // Resources Chart (NEW)
+        function createResourcesChart() {
+            const ctx = document.getElementById('resourcesChart').getContext('2d');
+            charts.resources = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'Training workshops',
+                        'Time for learning',
+                        'AI tool access',
+                        'Clear policies',
+                        'IT support',
+                        'Peer groups',
+                        'Use case examples',
+                        'No support needed'
+                    ],
+                    datasets: [{
+                        label: 'Staff Requesting (%)',
+                        data: [66, 61, 59, 54, 40, 31, 31, 12],
+                        backgroundColor: function(context) {
+                            const value = context.parsed.y;
+                            if (value > 60) return 'rgba(220, 53, 69, 0.8)';
+                            if (value > 40) return 'rgba(255, 193, 7, 0.8)';
+                            if (value > 20) return 'rgba(40, 167, 69, 0.8)';
+                            return 'rgba(108, 117, 125, 0.8)';
+                        },
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + '% of staff';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: { display: false }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateResourcesChart(data) {
+            // Convert counts to percentages based on department total
+            const percentages = data.resources.map(count => 
+                Math.round((count / data.total) * 100)
+            );
+            charts.resources.data.datasets[0].data = percentages;
+            charts.resources.update();
+        }
+        
+        // Challenges Chart (NEW)
+        function createChallengesChart() {
+            const ctx = document.getElementById('challengesChart').getContext('2d');
+            charts.challenges = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Lack of training',
+                        'Uncertainty about benefits',
+                        'Limited tool access',
+                        'Not enough time',
+                        'Accuracy concerns',
+                        'Privacy concerns',
+                        'No need in role',
+                        'Other'
+                    ],
+                    datasets: [{
+                        data: [195, 168, 142, 135, 98, 87, 45, 22],
+                        backgroundColor: [
+                            'rgba(220, 53, 69, 0.9)',
+                            'rgba(220, 53, 69, 0.7)',
+                            'rgba(255, 193, 7, 0.9)',
+                            'rgba(255, 193, 7, 0.7)',
+                            'rgba(82, 38, 125, 0.9)',
+                            'rgba(82, 38, 125, 0.7)',
+                            'rgba(108, 117, 125, 0.5)',
+                            'rgba(108, 117, 125, 0.3)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 10,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + percentage + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateChallengesChart(data) {
+            charts.challenges.data.datasets[0].data = data.challenges;
+            charts.challenges.update();
+        }
+        
+        // Department Support Chart (NEW)
+        function createDeptSupportChart() {
+            const ctx = document.getElementById('deptSupportChart').getContext('2d');
+            charts.deptSupport = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['IT Services', 'Student Affairs', 'Academic', 'Other', 'Administration', 'Facilities'],
+                    datasets: [{
+                        label: 'Training Needs',
+                        data: [87, 75, 67, 65, 58, 41],
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        pointBackgroundColor: 'rgba(220, 53, 69, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(220, 53, 69, 1)'
+                    }, {
+                        label: 'Time Allocation',
+                        data: [78, 68, 62, 58, 52, 35],
+                        backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        pointBackgroundColor: 'rgba(255, 193, 7, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 193, 7, 1)'
+                    }, {
+                        label: 'Tool Access',
+                        data: [82, 72, 65, 60, 55, 38],
+                        backgroundColor: 'rgba(82, 38, 125, 0.2)',
+                        borderColor: 'rgba(82, 38, 125, 1)',
+                        pointBackgroundColor: 'rgba(82, 38, 125, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(82, 38, 125, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateDeptSupportChart(data) {
+            charts.deptSupport.data.datasets[0].data = data.deptSupport.training;
+            charts.deptSupport.data.datasets[1].data = data.deptSupport.time;
+            charts.deptSupport.data.datasets[2].data = data.deptSupport.tools;
+            charts.deptSupport.update();
+        }
+        
+        // Radar Chart
+        function createRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            charts.radar = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'Frequency of Use',
+                        'Training Received',
+                        'Tool Diversity',
+                        'Department Support',
+                        'Technical Background',
+                        'Years of Experience'
+                    ],
+                    datasets: [{
+                        label: 'High Confidence Staff',
+                        data: [92, 88, 74, 65, 58, 48],
+                        backgroundColor: 'rgba(82, 38, 125, 0.2)',
+                        borderColor: 'rgba(82, 38, 125, 1)',
+                        pointBackgroundColor: 'rgba(82, 38, 125, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(82, 38, 125, 1)'
+                    }, {
+                        label: 'Low Confidence Staff',
+                        data: [20, 20, 20, 20, 35, 36],
+                        backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                        borderColor: 'rgba(108, 117, 125, 0.5)',
+                        pointBackgroundColor: 'rgba(108, 117, 125, 0.5)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(108, 117, 125, 0.5)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateRadarChart(data) {
+            charts.radar.data.datasets[0].data = data.radarHigh;
+            charts.radar.data.datasets[1].data = data.radarLow;
+            charts.radar.update();
+        }
+        
+        // Tools Chart
+        function createToolsChart() {
+            const ctx = document.getElementById('toolsChart').getContext('2d');
+            charts.tools = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ChatGPT', 'Microsoft Copilot', 'Gemini', 'Claude', 'Perplexity', 'Other'],
+                    datasets: [{
+                        data: [224, 134, 78, 45, 34, 67],
+                        backgroundColor: [
+                            'rgba(82, 38, 125, 0.9)',
+                            'rgba(123, 75, 167, 0.9)',
+                            'rgba(156, 107, 178, 0.9)',
+                            'rgba(186, 139, 200, 0.9)',
+                            'rgba(206, 171, 216, 0.9)',
+                            'rgba(225, 203, 232, 0.9)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateToolsChart(data) {
+            charts.tools.data.datasets[0].data = data.tools;
+            charts.tools.update();
+        }
+        
+        // Concerns Chart
+        function createConcernsChart() {
+            const ctx = document.getElementById('concernsChart').getContext('2d');
+            charts.concerns = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Academic Integrity', 'Lack of Training', 'Misinformation', 
+                             'Data Privacy', 'Skill Degradation', 'Job Displacement', 'No Clear Policies'],
+                    datasets: [{
+                        label: 'Percentage Concerned',
+                        data: [80, 73, 71, 65, 62, 38, 71],
+                        backgroundColor: function(context) {
+                            const value = context.parsed.x;
+                            if (value > 70) return 'rgba(220, 53, 69, 0.8)';
+                            if (value > 60) return 'rgba(255, 193, 7, 0.8)';
+                            return 'rgba(40, 167, 69, 0.8)';
+                        },
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateConcernsChart(data) {
+            charts.concerns.data.datasets[0].data = data.concerns;
+            charts.concerns.update();
+        }
+        
+        // Update crosstab table
+        function updateCrosstabTable(selectedDept) {
+            const rows = document.querySelectorAll('#crosstabBody tr');
+            rows.forEach(row => {
+                row.classList.remove('highlight');
+            });
+            
+            if (selectedDept !== 'all') {
+                const deptRowMap = {
+                    'it': 0,
+                    'academic': 1,
+                    'admin': 2,
+                    'student': 3,
+                    'facilities': 4,
+                    'other': 5
+                };
+                
+                if (deptRowMap[selectedDept] !== undefined) {
+                    rows[deptRowMap[selectedDept]].classList.add('highlight');
+                }
+            }
+        }
+        
+        // Update insights based on selection
+        function updateInsights(selectedDept) {
+            const frequencyInsights = document.getElementById('frequencyInsights');
+            const departmentInsights = document.getElementById('departmentInsights');
+            const radarInsights = document.getElementById('radarInsights');
+            const strategicText = document.getElementById('strategicText');
+            const resourceRecommendations = document.getElementById('resourceRecommendations');
+            
+            if (selectedDept === 'it') {
+                frequencyInsights.innerHTML = `
+                    <li>35% daily usage - highest among all departments</li>
+                    <li>87% use AI at least monthly for technical tasks</li>
+                    <li>Only 4% have never used AI tools</li>
+                `;
+                departmentInsights.innerHTML = `
+                    <li>IT Services shows exceptional 87% adoption rate</li>
+                    <li>Strong technical background enables rapid adoption</li>
+                    <li>Department serves as AI innovation leader</li>
+                `;
+                resourceRecommendations.innerHTML = `
+                    <li><strong>Advanced Training:</strong> Focus on advanced AI techniques and API integration</li>
+                    <li><strong>Innovation Lab:</strong> Create AI testing environment for new tools</li>
+                    <li><strong>Mentorship Program:</strong> IT staff can lead training for other departments</li>
+                    <li><strong>Tool Development:</strong> Support custom AI solution development</li>
+                    <li><strong>Best Practices:</strong> Document and share successful use cases</li>
+                    <li><strong>Department Strength:</strong> 87% adoption - leverage as campus leaders</li>
+                `;
+                strategicText.textContent = 'IT Services should lead peer mentoring and share best practices with other departments.';
+            } else if (selectedDept === 'facilities') {
+                frequencyInsights.innerHTML = `
+                    <li>Only 9% daily usage - significant opportunity</li>
+                    <li>41% adoption rate indicates resistance or lack of awareness</li>
+                    <li>35% have never used AI tools - highest non-adoption</li>
+                `;
+                departmentInsights.innerHTML = `
+                    <li>Facilities shows lowest adoption at 41%</li>
+                    <li>Need targeted training for operational use cases</li>
+                    <li>Potential for automation in maintenance and scheduling</li>
+                `;
+                resourceRecommendations.innerHTML = `
+                    <li><strong>Targeted Training:</strong> Focus on practical facilities management AI applications</li>
+                    <li><strong>Use Case Examples:</strong> Maintenance scheduling, inventory management, energy optimization</li>
+                    <li><strong>Hands-on Workshops:</strong> Demonstrate AI for work order processing</li>
+                    <li><strong>Peer Learning:</strong> Partner with other operational departments</li>
+                    <li><strong>Tool Access:</strong> Provide facilities-specific AI tools</li>
+                    <li><strong>Opportunity:</strong> 59% improvement potential - highest growth opportunity</li>
+                `;
+                strategicText.textContent = 'Focus on practical, job-specific AI applications for facilities management and operations.';
+            } else if (selectedDept === 'academic') {
+                frequencyInsights.innerHTML = `
+                    <li>27% daily usage shows strong engagement</li>
+                    <li>67% adoption rate above institutional average</li>
+                    <li>13% never-users can be converted with training</li>
+                `;
+                departmentInsights.innerHTML = `
+                    <li>Academic Support shows 67% adoption rate</li>
+                    <li>Strong use for content creation and student support</li>
+                    <li>Opportunity to enhance student services with AI</li>
+                `;
+                resourceRecommendations.innerHTML = `
+                    <li><strong>Educational Focus:</strong> Training on AI for curriculum development and student support</li>
+                    <li><strong>Content Creation:</strong> Workshops on using AI for educational materials</li>
+                    <li><strong>Student Engagement:</strong> Tools for personalized learning experiences</li>
+                    <li><strong>Academic Integrity:</strong> Clear guidelines for appropriate AI use</li>
+                    <li><strong>Collaboration Tools:</strong> AI for research and academic writing</li>
+                    <li><strong>Department Advantage:</strong> 67% adoption - build on existing momentum</li>
+                `;
+                strategicText.textContent = 'Leverage high adoption to develop AI-enhanced student support services.';
+            } else {
+                // Default (all departments)
+                frequencyInsights.innerHTML = `
+                    <li>18% daily usage is 3x higher than faculty (6%)</li>
+                    <li>55% use AI at least monthly for work tasks</li>
+                    <li>14% have never used AI tools</li>
+                `;
+                departmentInsights.innerHTML = `
+                    <li>IT Services leads with 87% adoption rate</li>
+                    <li>Facilities shows lowest adoption at 41%</li>
+                    <li>Clear correlation with technical roles</li>
+                `;
+                resourceRecommendations.innerHTML = `
+                    <li><strong>Immediate Action:</strong> Launch monthly AI training workshops with hands-on practice sessions</li>
+                    <li><strong>Policy Development:</strong> Create clear AI usage guidelines addressing the 54% who need clarity</li>
+                    <li><strong>Time Investment:</strong> Allocate 2-4 hours monthly for AI skill development (addresses 61% need)</li>
+                    <li><strong>Tool Procurement:</strong> Negotiate enterprise licenses for top AI tools (ChatGPT, Copilot, Claude)</li>
+                    <li><strong>Support Structure:</strong> Establish AI Champions program for peer-to-peer learning (31% interest)</li>
+                    <li><strong>Success Metrics:</strong> Only 12% don't need support - opportunity to reach 88% of staff</li>
+                `;
+                strategicText.textContent = 'Focus on increasing usage frequency through hands-on training, introduce diverse AI tools, and build departmental support structures.';
+            }
+        }
+    </script>
+</body>
+</html>
